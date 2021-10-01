@@ -27,6 +27,13 @@ type Cipher1 struct {
 	s *big.Int
 }
 
+type Cipher2 struct {
+	c []byte
+	r *pbc.Element
+	k *pbc.Element
+	s *pbc.Element
+}
+
 func randBigInt() *big.Int {
 	r := rand.Int63()
 	return big.NewInt(r)
@@ -153,13 +160,6 @@ func UnSignc1(sysParams *Params, cipher1 *Cipher1, key *Key) ([]byte, bool) {
 	tk2.PowBig(tk2, key.sk)
 	k2 := tk2.Bytes()
 	return xor(cipher1.c, k2), isValid
-}
-
-type Cipher2 struct {
-	c []byte
-	r *pbc.Element
-	k *pbc.Element
-	s *pbc.Element
 }
 
 func ReSinc(sysParams *Params, cipher1 *Cipher1, rk *pbc.Element) *Cipher2 {
