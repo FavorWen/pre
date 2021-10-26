@@ -252,3 +252,39 @@ func (c2 *Cipher2) Load(sys *Params, buf []byte) error {
 	idx += l
 	return nil
 }
+
+func ExportVerifyParams(sys *Params, c2 *Cipher2, key *Key) ([]byte, error) {
+	sysBytes, _ := sys.Export()
+	c2Bytes, _ := c2.Export()
+	keyBytes, _ := key.ExportKey()
+
+	var buf []byte
+	buf = append(IntToBytes(len(sysBytes)), sysBytes...)
+	buf = append(IntToBytes(len(c2Bytes)), c2Bytes...)
+	buf = append(IntToBytes(len(keyBytes)), keyBytes...)
+	return buf, nil
+
+}
+
+func LoadVerifyParams(buf []byte) (sys *Params, c2 *Cipher2, key *Key) {
+	// sys
+	idx := 0
+	l := BytesToInt(buf[idx : idx+4])
+	idx += 4
+	sys = SetUp()
+	sys.Load(buf[idx : idx+l])
+	idx += l
+	// c2
+	l = BytesToInt(buf[idx : idx+4])
+	idx += 4
+	c2 = new(Cipher2)
+	c2.Load(sys, buf[idx:idx+l])
+	idx += l
+	// key
+	l = BytesToInt(buf[idx : idx+4])
+	idx += 4
+	key = KeyGen(sys)
+	key.Load(buf[idx : idx+l])
+	idx += l
+	return
+}
