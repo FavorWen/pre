@@ -228,3 +228,38 @@ func UnSignc2(sysParams *Params, cipher2 *Cipher2, skey *Key, pkey *Key) ([]byte
 
 	return xor(cipher2.c, k2.Bytes()), isValid
 }
+
+func Verify(sysParams *Params, cipher2 *Cipher2, pkey *Key, k3 []byte) bool {
+	k1 := cipher2.r.Bytes()
+	//k3 := k2.Bytes()
+	th := make([]byte, 0)
+	th = append(th, pkey.pk.Bytes()...)
+	th = append(th, k1...)
+	th = append(th, k3...)
+	th = append(th, cipher2.c...)
+	h1 := new(big.Int).SetBytes(th)
+	h1.Mod(h1, sysParams.M)
+	//invH1 := new(big.Int).ModInverse(h1, sysParams.M)
+	//invH1 := new(big.Int).Sub(h1, sysParams.M)
+	//invH1.Mod(invH1, sysParams.M)
+	negH1 := new(big.Int).Neg(h1)
+	negH1.Mod(negH1, sysParams.M)
+
+	pkh1 := sysParams.g.NewFieldElement().PowBig(pkey.pk, h1)
+	th = make([]byte, 0)
+	th = append(th, k1...)
+	th = append(th, pkh1.Bytes()...)
+	th = append(th, cipher2.c...)
+	th = append(th, cipher2.k.Bytes()...)
+	h2 := sysParams.g.NewFieldElement().SetBytes(th)
+
+	v1 := sysParams.x.NewFieldElement().Pair(cipher2.s, sysParams.g)
+	v21 := sysParams.x.NewFieldElement().Pair(h2, cipher2.r)
+	v22 := sysParams.x.NewFieldElement().Pair(h2, pkey.pk)
+	v22.PowBig(v22, negH1)
+	v2 := sysParams.x.NewFieldElement().Mul(v21, v22)
+
+	isValid := (v1.X().Cmp(v2.X()) == 0) && (v1.Y().Cmp(v2.Y()) == 0)
+
+	return isValid
+}

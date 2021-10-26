@@ -253,20 +253,27 @@ func (c2 *Cipher2) Load(sys *Params, buf []byte) error {
 	return nil
 }
 
-func ExportVerifyParams(sys *Params, c2 *Cipher2, key *Key) ([]byte, error) {
+func ExportVerifyParams(sys *Params, c2 *Cipher2, skey *Key, pkey *Key) ([]byte, error) {
 	sysBytes, _ := sys.Export()
 	c2Bytes, _ := c2.Export()
-	keyBytes, _ := key.ExportKey()
+	keyBytes, _ := pkey.ExportKey()
+
+	invSk := new(big.Int).ModInverse(skey.sk, sys.M)
+	k2 := sys.x.NewFieldElement().PowBig(c2.k, invSk)
+	// k2.Bytes() should by replaced by Collision Resistance Hash Functions.
+	// using .Bytes() for convience here
+	k3 := k2.Bytes()
 
 	var buf []byte
 	buf = append(IntToBytes(len(sysBytes)), sysBytes...)
 	buf = append(IntToBytes(len(c2Bytes)), c2Bytes...)
 	buf = append(IntToBytes(len(keyBytes)), keyBytes...)
+	buf = append(IntToBytes(len(k3)), k3...)
 	return buf, nil
 
 }
 
-func LoadVerifyParams(buf []byte) (sys *Params, c2 *Cipher2, key *Key) {
+func LoadVerifyParams(buf []byte) (sys *Params, c2 *Cipher2, key *Key, k3 []byte) {
 	// sys
 	idx := 0
 	l := BytesToInt(buf[idx : idx+4])
@@ -285,6 +292,11 @@ func LoadVerifyParams(buf []byte) (sys *Params, c2 *Cipher2, key *Key) {
 	idx += 4
 	key = KeyGen(sys)
 	key.Load(buf[idx : idx+l])
+	idx += l
+	//k3
+	l = BytesToInt(buf[idx : idx+4])
+	idx += 4
+	k3 = buf[idx : idx+l]
 	idx += l
 	return
 }
