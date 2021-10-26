@@ -60,6 +60,10 @@ func TestSample(t *testing.T) {
 	m2, valid2 := UnSignc2(sysB, c2B, keyB, keyBA)
 	fmt.Printf("m':%v,isValid:%v\n", m1, valid1)
 	fmt.Printf("m':%v,isValid:%v\n", m2, valid2)
+
+	verifyBytes, _ := ExportVerifyParams(sysA, c2, keyBA)
+	vSys, vC2, vPk := LoadVerifyParams(verifyBytes)
+	fmt.Println("verify:", Verify(vSys, vC2, vPk))
 	//-----------------------------------------------------
 	//-----------------------------------------------------
 	//-----------------------------------------------------
@@ -88,4 +92,9 @@ func TestSample(t *testing.T) {
 	m2, valid2 = UnSignc2(sysB, c2B, keyB, keyBA)
 	fmt.Printf("m':%v,isValid:%v\n", m1, valid1)
 	fmt.Printf("m':%v,isValid:%v\n", m2, valid2)
+
+	verifyBytes, _ = ExportVerifyParams(sysA, c2B, keyBA)
+	vSys, vC2, vPk = LoadVerifyParams(verifyBytes)
+	fmt.Println("verify:", Verify(vSys, vC2, vPk))
+
 }

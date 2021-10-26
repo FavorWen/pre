@@ -105,13 +105,13 @@ func Signc(sysParams *Params, key *Key, msg []byte) *Cipher1 {
 	// k1 = H1(g ^ r), k2 = H2(T), k3 = H3(T)
 	k1 := R.Bytes()
 	k2 := T.Bytes()
-	k3 := T.Bytes()
+	//k3 := T.Bytes()
 	// c = m xor k2, h = H4(pka,k1,k2,k3,c), D = g ^ (ska * h), s = r - ska * h
 	c := xor(msg, k2)
 	th := make([]byte, 0)
 	th = append(th, key.pk.Bytes()...)
 	th = append(th, k1...)
-	th = append(th, k3...)
+	//th = append(th, k3...)
 	th = append(th, c...)
 	h := new(big.Int).SetBytes(th)
 	h.Mod(h, sysParams.M)
@@ -141,12 +141,12 @@ func UnSignc1(sysParams *Params, cipher1 *Cipher1, key *Key) ([]byte, bool) {
 	tk3 := sysParams.x.NewFieldElement()
 	tk3.Pair(R, key.pk)
 	tk3.PowBig(tk3, key.sk)
-	k3 := tk3.Bytes()
+	//k3 := tk3.Bytes()
 
 	tn := make([]byte, 0)
 	tn = append(tn, key.pk.Bytes()...)
 	tn = append(tn, k1...)
-	tn = append(tn, k3...)
+	//tn = append(tn, k3...)
 	tn = append(tn, cipher1.c...)
 	n := new(big.Int).SetBytes(tn)
 	n.Mod(n, sysParams.M)
@@ -196,11 +196,11 @@ func UnSignc2(sysParams *Params, cipher2 *Cipher2, skey *Key, pkey *Key) ([]byte
 	k2 := sysParams.x.NewFieldElement().PowBig(cipher2.k, invSk)
 
 	k1 := cipher2.r.Bytes()
-	k3 := k2.Bytes()
+	//k3 := k2.Bytes()
 	th := make([]byte, 0)
 	th = append(th, pkey.pk.Bytes()...)
 	th = append(th, k1...)
-	th = append(th, k3...)
+	//th = append(th, k3...)
 	th = append(th, cipher2.c...)
 	h1 := new(big.Int).SetBytes(th)
 	h1.Mod(h1, sysParams.M)
@@ -229,13 +229,12 @@ func UnSignc2(sysParams *Params, cipher2 *Cipher2, skey *Key, pkey *Key) ([]byte
 	return xor(cipher2.c, k2.Bytes()), isValid
 }
 
-func Verify(sysParams *Params, cipher2 *Cipher2, pkey *Key, k3 []byte) bool {
+func Verify(sysParams *Params, cipher2 *Cipher2, pkey *Key) bool {
 	k1 := cipher2.r.Bytes()
 	//k3 := k2.Bytes()
 	th := make([]byte, 0)
 	th = append(th, pkey.pk.Bytes()...)
 	th = append(th, k1...)
-	th = append(th, k3...)
 	th = append(th, cipher2.c...)
 	h1 := new(big.Int).SetBytes(th)
 	h1.Mod(h1, sysParams.M)
